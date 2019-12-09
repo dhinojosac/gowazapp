@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"fyne.io/fyne/theme"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/driver/desktop"
@@ -45,6 +47,8 @@ var mEntry *ChatEntry
 func main() {
 	//gui
 	a := app.New()
+	wzpTheme := theme.WzpTheme()
+	a.Settings().SetTheme(wzpTheme)
 	w := a.NewWindow("GoWAZAPP")
 	fs := false
 
