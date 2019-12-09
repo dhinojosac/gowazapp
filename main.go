@@ -2,7 +2,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"time"
 
 	"fyne.io/fyne/theme"
@@ -17,6 +19,7 @@ import (
 var index = 0
 var groupScroller *widget.Group
 var scrollChat *widget.ScrollContainer
+var hidden = 0
 
 func addTextToChat() {
 	fmt.Printf("Enter pressed!\n")
@@ -45,12 +48,30 @@ func (e *ChatEntry) TypedKey(key *fyne.KeyEvent) {
 var mEntry *ChatEntry
 
 func main() {
+
+	//os.Setenv("FYNE_SCALE", "0.9")
+
 	//gui
 	a := app.New()
 	wzpTheme := theme.WzpTheme()
 	a.Settings().SetTheme(wzpTheme)
 	w := a.NewWindow("GoWAZAPP")
 	fs := false
+
+	go func() {
+		fmt.Printf("Listening...\n")
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			text, _ := reader.ReadString('\n')
+			time.Sleep(1 * time.Second)
+			fmt.Printf(text)
+			if text == "show\n" {
+				w.Show()
+				hidden = 0
+
+			}
+		}
+	}()
 
 	w.SetMainMenu(fyne.NewMainMenu(
 		fyne.NewMenu("File",
@@ -63,10 +84,7 @@ func main() {
 		fyne.NewMenu("Window",
 			fyne.NewMenuItem("Hide", func() {
 				w.Hide()
-				go func() {
-					time.Sleep(time.Second * 5)
-					w.Show()
-				}()
+				hidden = 1
 			}),
 			fyne.NewMenuItem("FullScreen", func() {
 				if fs == false {
@@ -81,7 +99,7 @@ func main() {
 			}),
 		)))
 
-	groupScroller, scrollChat = widget.NewGroupWithScroller("")
+	groupScroller, scrollChat = widget.NewGroupWithScroller("WZP Console")
 
 	mEntry = &ChatEntry{}
 	mEntry.ExtendBaseWidget(mEntry)
@@ -89,13 +107,21 @@ func main() {
 	w.Canvas().(desktop.Canvas).SetOnKeyDown(func(ev *fyne.KeyEvent) {
 
 		fmt.Printf("Key pressed: %v\n", ev.Name)
-		if ev.Name == "Escape" {
 
+		if hidden == 0 {
+			if ev.Name == "LeftControl" {
+				fmt.Printf("Press Space to hide!\n")
+				hidden = 2
+			}
 		}
 
-		if ev.Name == "Enter" {
-
+		if hidden == 2 {
+			if ev.Name == "Space" {
+				w.Hide()
+				hidden = 1
+			}
 		}
+
 	})
 
 	button := widget.NewButton("SEND", func() {
