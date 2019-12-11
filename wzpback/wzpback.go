@@ -5,14 +5,44 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"sort"
+	"syscall"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
-	"github.com/gen2brain/beeep"
+	"github.com/dhinojosac/gowazapp/wzpui"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 )
+
+var number string
+var historyMessages []whatsapp.TextMessage //TODO:implement and order history messages FIFO
+var lastMsg string
+var wac *whatsapp.Conn
+var ctime time.Time //time of login
+
+// ByTime implements sort.Interface based on the timestamp field.
+type byTime []whatsapp.TextMessage
+
+func (a byTime) Len() int           { return len(a) }
+func (a byTime) Less(i, j int) bool { return a[i].Info.Timestamp < a[j].Info.Timestamp }
+func (a byTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+func SetNumberWZP(s string) error {
+	//TODO: check error number
+	number = s
+	return nil
+}
+
+func GetNumberWZP() string {
+	return number
+}
+
+type waHandler struct {
+	c *whatsapp.Conn
+}
 
 func login(wac *whatsapp.Conn) error {
 	//load saved session
@@ -96,29 +126,19 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 
 	if message.Info.RemoteJid == number+"@s.whatsapp.net" {
 		t := time.Unix(int64(message.Info.Timestamp), 0)
-		lastMsg = message.Text
+		//lastMsg = message.Text
 		diff := ctime.Sub(t)
 		if diff < 0 { //new messages
 			fmt.Printf("[new]")
-			var err error
-			if soundAlert {
-				err = beeep.Beep(beeep.DefaultFreq, beeep.DefaultDuration)
-				if err != nil {
-					panic(err)
-				}
-			}
-			if notifAlert {
-				err = beeep.Alert("WZP", message.Text, "")
-				if err != nil {
-					panic(err)
-				}
-			}
+			//sound
+			//notify
 			if message.Info.FromMe == true {
-				addWzpTextToChat(">> " + message.Text)
+				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + ">> " + message.Text)
 			} else {
-				addWzpTextToChat("<< " + message.Text)
+				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + "<< " + message.Text)
 			}
 		} else {
+			// Append text to chat
 			historyMessages = append(historyMessages, message) //Add to history message array
 		}
 	}
@@ -153,4 +173,91 @@ func SendMessage(w *whatsapp.Conn, m string) {
 
 		fmt.Println(m)
 	}
+}
+
+func printHistory() {
+	sort.Sort(byTime(historyMessages))
+	fmt.Printf("History\n----------------------\n")
+	for i := range historyMessages {
+		message := historyMessages[i]
+		t := time.Unix(int64(message.Info.Timestamp), 0)
+		if message.Info.FromMe == true {
+			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + ">> " + message.Text)
+		} else {
+			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + "<< " + message.Text)
+		}
+	}
+	fmt.Printf("----------------------\n")
+}
+
+func StartWZP() {
+	go func() {
+		fmt.Printf("[!] Start WZP client\n")
+		ctime = time.Now()
+
+		var err error
+		//create new WhatsApp connection
+		wac, err = whatsapp.NewConn(10 * time.Second)
+		if err != nil {
+			log.Fatalf("error creating connection: %v\n", err)
+		} else {
+			fmt.Printf("[!] WZP Connected!\n")
+		}
+
+		//Add handler
+		wac.AddHandler(&waHandler{wac})
+
+		//SendMessage(wac, "Client connected!\n") //testing send message
+
+		//login or restore
+		if err := login(wac); err != nil {
+			log.Fatalf("error logging in: %v\n", err)
+		} else {
+			fmt.Printf("[!] WZP logged in!\n")
+			wzpui.ChangeState("Logged in")
+		}
+
+		//verifies phone connectivity
+		pong, err := wac.AdminTest()
+
+		if !pong || err != nil {
+			log.Fatalf("error pinging in: %v\n", err)
+		} else {
+			fmt.Printf("[!] WZP pinged in!\n")
+			wzpui.ChangeState("Connected")
+		}
+
+		// wait while chat jids are acquired through incoming initial messages
+		fmt.Println("[!] Waiting for chats info...")
+		wzpui.ChangeState("Loading history...")
+		<-time.After(6 * time.Second)
+
+		printHistory()
+		wzpui.ChangeState("Ready")
+
+		ch := wzpui.GetChatChan()
+		go func() {
+			fmt.Printf("Ready to listen chat\n")
+			for msg := range ch {
+				SendMessage(wac, msg)
+			}
+		}()
+
+		//wait signal to shut down application
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		<-c
+
+		//Disconnect safe
+		fmt.Println("Shutting down now.")
+		wzpui.ChangeState("Offline")
+		session, err := wac.Disconnect()
+		if err != nil {
+			log.Fatalf("error disconnecting: %v\n", err)
+		}
+		if err := writeSession(session); err != nil {
+			log.Fatalf("error saving session: %v", err)
+		}
+
+	}()
 }
