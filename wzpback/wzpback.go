@@ -13,6 +13,7 @@ import (
 	"github.com/Rhymen/go-whatsapp"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"github.com/dhinojosac/gowazapp/wzpui"
+	"github.com/dhinojosac/gowazapp/wzputils"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 )
@@ -131,6 +132,7 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 		if diff < 0 { //new messages
 			fmt.Printf("[new]")
 			//sound
+			wzputils.SoundMsgTone()
 			//notify
 			if message.Info.FromMe == true {
 				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + ">> " + message.Text)
