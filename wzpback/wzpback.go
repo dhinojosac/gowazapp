@@ -243,6 +243,8 @@ func StartWZP() {
 			}
 		}()
 
+		wzpui.EnableEntryChat()
+
 		//wait signal to shut down application
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)

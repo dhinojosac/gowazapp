@@ -43,6 +43,14 @@ type ChatEntry struct {
 	widget.Entry
 }
 
+func DisableEntryChat() {
+	mEntry.Disable()
+}
+
+func EnableEntryChat() {
+	mEntry.Enable()
+}
+
 func AddTextToChat() {
 	fmt.Printf("Enter pressed!\n")
 	s := mEntry.Text
@@ -86,6 +94,7 @@ func CreateWindowApp() fyne.Window {
 
 	mEntry = &ChatEntry{}
 	mEntry.ExtendBaseWidget(mEntry)
+	DisableEntryChat()
 
 	w.Canvas().(desktop.Canvas).SetOnKeyDown(func(ev *fyne.KeyEvent) {
 
