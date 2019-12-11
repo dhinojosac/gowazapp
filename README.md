@@ -2,7 +2,7 @@
 
 ## Images
 
-(!screenshot)[images/scrshoot1.jpg]
+![screenshot](images/scrshoot1.jpg)
 
 ### Author
 Diego Hinojosa Cordova
