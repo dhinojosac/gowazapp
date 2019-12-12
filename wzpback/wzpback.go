@@ -135,9 +135,9 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 			wzputils.SoundMsgTone()
 			//notify
 			if message.Info.FromMe == true {
-				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + ">> " + message.Text)
+				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05")+">> "+message.Text, true)
 			} else {
-				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + "<< " + message.Text)
+				wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05")+"<< "+message.Text, false)
 			}
 		} else {
 			// Append text to chat
@@ -184,9 +184,9 @@ func printHistory() {
 		message := historyMessages[i]
 		t := time.Unix(int64(message.Info.Timestamp), 0)
 		if message.Info.FromMe == true {
-			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + ">> " + message.Text)
+			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05")+">> "+message.Text, true)
 		} else {
-			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05") + "<< " + message.Text)
+			wzpui.AddWzpTextToChat(t.Format("01/02/2006 15:04:05")+"<< "+message.Text, false)
 		}
 	}
 	fmt.Printf("----------------------\n")

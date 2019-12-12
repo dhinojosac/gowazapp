@@ -2,6 +2,7 @@ package wzpui
 
 import (
 	"fmt"
+	"image/color"
 	"time"
 
 	"fyne.io/fyne"
@@ -56,6 +57,7 @@ func AddTextToChat() {
 	s := mEntry.Text
 	t := time.Now()
 	v := widget.NewLabel(t.Format("01/02/2006 15:04:05") + ">> " + mEntry.Text)
+	v.SetColor(color.RGBA{0x33, 0x99, 0xff, 0xff})
 
 	mEntry.SetText("")
 	groupScroller.Append(v)
@@ -65,8 +67,13 @@ func AddTextToChat() {
 
 }
 
-func AddWzpTextToChat(s string) {
+func AddWzpTextToChat(s string, fromMe bool) {
 	v := widget.NewLabel(s)
+	if fromMe {
+		v.SetColor(color.RGBA{0x77, 0x99, 0x77, 0x80})
+	} else {
+		v.SetColor(color.RGBA{0x77, 0x77, 0x99, 0x80})
+	}
 	groupScroller.Append(v)
 	mEntry.SetText("")
 	index += 1
@@ -188,3 +195,5 @@ func SetMenuBar(w fyne.Window) {
 func ChangeState(s string) {
 	statusLabel.SetText("Status: " + s)
 }
+
+/**************************************/
