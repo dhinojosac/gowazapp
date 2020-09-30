@@ -2,14 +2,12 @@ package wzpui
 
 import (
 	"fmt"
-	"image/color"
 	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/driver/desktop"
 	"fyne.io/fyne/layout"
-	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"github.com/dhinojosac/gowazapp/wzputils"
 )
@@ -57,27 +55,27 @@ func AddTextToChat() {
 	s := mEntry.Text
 	t := time.Now()
 	v := widget.NewLabel(t.Format("01/02/2006 15:04:05") + ">> " + mEntry.Text)
-	v.SetColor(color.RGBA{0x33, 0x99, 0xff, 0xff})
+	//v.SetColor(color.RGBA{0x33, 0x99, 0xff, 0xff}) //deprecated
 
 	mEntry.SetText("")
 	groupScroller.Append(v)
 	chatchan <- s
 	index += 1
-	scrollChat.ScrollToEnd()
+	//scrollChat.ScrollToEnd() //deprecated
 
 }
 
 func AddWzpTextToChat(s string, fromMe bool) {
 	v := widget.NewLabel(s)
 	if fromMe {
-		v.SetColor(color.RGBA{0x77, 0x99, 0x77, 0x80})
+		//v.SetColor(color.RGBA{0x77, 0x99, 0x77, 0x80}) //deprecated
 	} else {
-		v.SetColor(color.RGBA{0x77, 0x77, 0x99, 0x80})
+		//v.SetColor(color.RGBA{0x77, 0x77, 0x99, 0x80}) //deprecated
 	}
 	groupScroller.Append(v)
 	mEntry.SetText("")
 	index += 1
-	scrollChat.ScrollToEnd()
+	//scrollChat.ScrollToEnd()  //deprecated
 }
 
 func (e *ChatEntry) TypedKey(key *fyne.KeyEvent) {
@@ -93,11 +91,11 @@ func (e *ChatEntry) TypedKey(key *fyne.KeyEvent) {
 
 func CreateWindowApp() fyne.Window {
 	a := app.New()
-	wzpTheme := theme.WzpTheme()
-	a.Settings().SetTheme(wzpTheme)
+	//wzpTheme := theme.WzpTheme()//deprecated
+	//a.Settings().SetTheme(wzpTheme)//deprecated
 	w := a.NewWindow("GoWAZAPP")
 	SetMenuBar(w)
-	groupScroller, scrollChat = widget.NewGroupWithScroller("WZP Console")
+	groupScroller = widget.NewGroupWithScroller("WZP Console")
 
 	mEntry = &ChatEntry{}
 	mEntry.ExtendBaseWidget(mEntry)
