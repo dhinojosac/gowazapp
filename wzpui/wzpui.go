@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/driver/desktop"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
+
 	"github.com/dhinojosac/gowazapp/wzputils"
 )
 
 var index = 0
-var groupScroller *widget.Group
-var scrollChat *widget.ScrollContainer
+
+var groupScroller *container.Scroll
+var contentScroller *fyne.Container
+
+// var scrollChat *fyne.Widget.Scroll
 var soundMenu *fyne.MenuItem
 var hidden = 0
 var fullScreenState = false
@@ -58,10 +62,10 @@ func AddTextToChat() {
 	//v.SetColor(color.RGBA{0x33, 0x99, 0xff, 0xff}) //deprecated
 
 	mEntry.SetText("")
-	groupScroller.Append(v)
+	contentScroller.Add(v)
 	chatchan <- s
 	index += 1
-	//scrollChat.ScrollToEnd() //deprecated
+	groupScroller.ScrollToBottom()
 
 }
 
@@ -72,7 +76,8 @@ func AddWzpTextToChat(s string, fromMe bool) {
 	} else {
 		//v.SetColor(color.RGBA{0x77, 0x77, 0x99, 0x80}) //deprecated
 	}
-	groupScroller.Append(v)
+	// groupScroller.Append(v)
+	contentScroller.Add(v)
 	mEntry.SetText("")
 	index += 1
 	//scrollChat.ScrollToEnd()  //deprecated
@@ -91,35 +96,37 @@ func (e *ChatEntry) TypedKey(key *fyne.KeyEvent) {
 
 func CreateWindowApp() fyne.Window {
 	a := app.New()
-	//wzpTheme := theme.WzpTheme()//deprecated
-	//a.Settings().SetTheme(wzpTheme)//deprecated
+
 	w := a.NewWindow("GoWAZAPP")
-	SetMenuBar(w)
-	groupScroller = widget.NewGroupWithScroller("WZP Console")
+	// SetMenuBar(w) // todo: uncomment this line to set menu bar
+	// groupScroller = widget.NewGroupWithScroller("WZP Console")
+	contentScroller = container.NewVBox()
+
+	groupScroller = container.NewVScroll(contentScroller)
 
 	mEntry = &ChatEntry{}
 	mEntry.ExtendBaseWidget(mEntry)
 	DisableEntryChat()
 
-	w.Canvas().(desktop.Canvas).SetOnKeyDown(func(ev *fyne.KeyEvent) {
+	// w.Canvas().(desktop.Canvas).SetOnKeyDown(func(ev *fyne.KeyEvent) {
 
-		fmt.Printf("Key pressed: %v\n", ev.Name)
+	// 	fmt.Printf("Key pressed: %v\n", ev.Name)
 
-		if hidden == 0 {
-			if ev.Name == "LeftControl" {
-				fmt.Printf("Press Space to hide!\n")
-				hidden = 2
-			}
-		}
+	// 	if hidden == 0 {
+	// 		if ev.Name == "LeftControl" {
+	// 			fmt.Printf("Press Space to hide!\n")
+	// 			hidden = 2
+	// 		}
+	// 	}
 
-		if hidden == 2 {
-			if ev.Name == "Space" {
-				w.Hide()
-				hidden = 1
-			}
-		}
+	// 	if hidden == 2 {
+	// 		if ev.Name == "Space" {
+	// 			w.Hide()
+	// 			hidden = 1
+	// 		}
+	// 	}
 
-	})
+	// })
 
 	button := widget.NewButton("SEND", func() {
 		fmt.Printf("Button pressed!\n")
@@ -130,7 +137,7 @@ func CreateWindowApp() fyne.Window {
 	soundLabel = widget.NewLabel("Sound: OFF")
 	notifyLabel = widget.NewLabel("Alert: OFF")
 
-	alertLabels := widget.NewHBox(soundLabel, notifyLabel)
+	alertLabels := container.NewHBox(soundLabel, notifyLabel)
 	//statusBar = widget.NewHBox(statusLabel, alertLabels)
 	statusBar = fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, alertLabels), statusLabel, alertLabels)
 	c1 := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, button), mEntry, button)

@@ -12,10 +12,10 @@ import (
 	"github.com/dhinojosac/gowazapp/wzputils"
 )
 
-
 func main() {
 
 	//read number from file
+	wzputils.InitConfig()
 	number := wzputils.GetNumberFromFile()
 	wzpback.SetNumberWZP(number)
 	fmt.Printf("[!]%v\n", wzpback.GetNumberWZP())
@@ -40,7 +40,7 @@ func main() {
 		}
 	}()
 
-	wzpback.StartWZP()
+	// wzpback.StartWZP()
 
 	w.ShowAndRun()
 
